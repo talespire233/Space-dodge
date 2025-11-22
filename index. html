@@ -1,280 +1,76 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Space Dodge</title>
-  <style>
-    /* ---- Layout & theme ---- */
-    html,body { height:100%; margin:0; padding:0; font-family: Arial, sans-serif; background:#060416; color:#fff; }
-    #game { position:relative; width:100%; height:100vh; overflow:hidden; background: radial-gradient(ellipse at center,#1a0f3e 0%,#0a0520 100%); }
-    .star { position:absolute; background:white; border-radius:50%; opacity:.6; animation:twinkle 3s infinite; }
-    @keyframes twinkle { 0%,100%{opacity:.3} 50%{opacity:1} }
-
-    /* HUD */
-    #hud { position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; z-index:30; gap:10px; pointer-events:none; }
-    .score-display, .speed-indicator { pointer-events:auto; background:rgba(0,0,0,0.6); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); font-weight:700; color:#00ff88; box-shadow:0 6px 18px rgba(0,255,136,0.06); }
-    .speed-indicator { color:#ffaa00; }
-
-    /* Title & start */
-    #title { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); z-index:20; color:#00d4ff; font-size:2.6rem; text-align:center; text-shadow:0 0 20px #00d4ff; }
-    #startBtn { position:absolute; top:54%; left:50%; transform:translateX(-50%); z-index:25; padding:14px 28px; font-size:1rem; border-radius:12px; background:linear-gradient(135deg,#00d4ff,#0088ff); border:none; color:#fff; cursor:pointer; box-shadow:0 8px 30px rgba(0,212,255,0.24); }
-
-    /* spaceship & asteroids */
-    .spaceship { position:absolute; width:50px; height:50px; bottom:100px; left:calc(50% - 25px); z-index:22; transition:left .08s linear; filter:drop-shadow(0 0 10px #00d4ff); }
-    .asteroid { position:absolute; width:45px; height:45px; z-index:18; }
-
-    /* controls */
-    #controls { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:16px; z-index:40; }
-    .control-btn { width:64px; height:64px; border-radius:12px; border:2px solid rgba(0,212,255,0.15); background:rgba(0,212,255,0.06); color:#00d4ff; font-size:1.6rem; cursor:pointer; box-shadow:0 8px 24px rgba(0,212,255,0.06); }
-    .control-btn:active { transform:scale(.96); }
-
-    /* Game over overlay */
-    #gameOverOverlay { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.85); z-index:60; }
-    .game-over-box { background:linear-gradient(135deg,#1a0f3e,#0a0520); border:3px solid #ff3366; border-radius:16px; padding:28px; text-align:center; color:#fff; width:90%; max-width:420px; }
-    .game-over-box h2 { color:#ff3366; margin:0 0 8px; font-size:1.8rem; }
-    .game-over-box .final-score { color:#00ff88; font-size:1.4rem; font-weight:700; margin:10px 0; }
-
-    @media (max-width:600px){
-      #title{font-size:1.6rem}
-      .spaceship{width:44px;height:44px}
-      .control-btn{width:56px;height:56px;font-size:1.3rem}
-      #startBtn{padding:12px 20px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tap The Box Game</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: white;
+        text-align: center;
     }
-  </style>
+    #game-area {
+        width: 100%;
+        height: 80vh;
+        background: #222;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid white;
+    }
+    #box {
+        width: 60px;
+        height: 60px;
+        background: red;
+        position: absolute;
+        border-radius: 10px;
+    }
+    #score {
+        font-size: 24px;
+        margin-top: 10px;
+    }
+</style>
 </head>
 <body>
-  <div id="game">
-    <div id="hud">
-      <div class="score-display">SCORE: <span id="score">0</span></div>
-      <div class="speed-indicator">LEVEL: <span id="speedLevel">1</span></div>
-      <div class="score-display">HIGH: <span id="highScore">0</span></div>
-    </div>
 
-    <h1 id="title">SPACE DODGE</h1>
-    <button id="startBtn">START GAME</button>
-
-    <div class="spaceship" id="ship">
-      <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-        <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#00d4ff"/><stop offset="1" stop-color="#0088ff"/></linearGradient></defs>
-        <polygon points="25,5 45,45 25,35 5,45" fill="url(#g1)" stroke="#00ffff" stroke-width="1"/>
-      </svg>
-    </div>
-
-    <div id="controls">
-      <button class="control-btn" id="leftBtn" aria-label="left">◀</button>
-      <button class="control-btn" id="rightBtn" aria-label="right">▶</button>
-    </div>
-
-    <div id="gameOverOverlay">
-      <div class="game-over-box">
-        <h2 id="gameOverText">GAME OVER!</h2>
-        <div class="final-score">SCORE: <span id="finalScore">0</span></div>
-        <div class="final-score" style="font-size:1rem;color:#ffaa00">MAX LEVEL: <span id="maxLevel">1</span></div>
-        <div class="final-score" style="font-size:1rem">HIGH: <span id="finalHighScore">0</span></div>
-        <button id="restartBtn" style="margin-top:12px;padding:10px 22px;border-radius:10px;border:none;background:#00d4ff;color:#fff;cursor:pointer">PLAY AGAIN</button>
-      </div>
-    </div>
-  </div>
+<h2>Tap The Box 🎯</h2>
+<p id="score">Score: 0</p>
+<div id="game-area">
+    <div id="box"></div>
+</div>
 
 <script>
-/* --------- Game variables --------- */
-const game = document.getElementById('game');
-const ship = document.getElementById('ship');
-const scoreEl = document.getElementById('score');
-const highScoreEl = document.getElementById('highScore');
-const speedLevelEl = document.getElementById('speedLevel');
-const titleEl = document.getElementById('title');
-const startBtn = document.getElementById('startBtn');
-const gameOverOverlay = document.getElementById('gameOverOverlay');
-const finalScoreEl = document.getElementById('finalScore');
-const finalHighScoreEl = document.getElementById('finalHighScore');
-const maxLevelEl = document.getElementById('maxLevel');
-const restartBtn = document.getElementById('restartBtn');
-
-let shipX = 0;
-let asteroids = [];
+let box = document.getElementById("box");
+let gameArea = document.getElementById("game-area");
+let scoreDisplay = document.getElementById("score");
 let score = 0;
-let highScore = parseInt(localStorage.getItem('spaceHighScore') || '0', 10);
-let speed = 2;
-let currentLevel = 1;
-let gameRunning = false;
-let asteroidInterval = null;
-let moveInterval = null;
-let keys = {};
 
-/* milestones */
-const milestones = [10,20,30,50,70];
-const speedIncrements = [0.5,0.7,1,1.2,1.5];
+function moveBox() {
+    let maxX = gameArea.clientWidth - 60;
+    let maxY = gameArea.clientHeight - 60;
 
-/* init HUD */
-highScoreEl.textContent = highScore;
+    let randomX = Math.random() * maxX;
+    let randomY = Math.random() * maxY;
 
-/* create background stars */
-function createStars(){
-  for(let i=0;i<60;i++){
-    const s = document.createElement('div');
-    s.className = 'star';
-    const size = Math.random()*3+1;
-    s.style.width = s.style.height = size+'px';
-    s.style.left = (Math.random()*100)+'%';
-    s.style.top = (Math.random()*100)+'%';
-    s.style.animationDelay = (Math.random()*3)+'s';
-    game.appendChild(s);
-  }
+    box.style.left = randomX + "px";
+    box.style.top = randomY + "px";
 }
 
-/* position ship centered */
-function centerShip(){
-  const rect = game.getBoundingClientRect();
-  shipX = Math.max(0, rect.width/2 - 25);
-  updateShip();
-}
-
-/* update visual position */
-function updateShip(){
-  ship.style.left = shipX + 'px';
-}
-
-/* create one asteroid */
-function createAsteroid(){
-  if(!gameRunning) return;
-  const a = document.createElement('div');
-  a.className = 'asteroid';
-  a.style.left = Math.random() * (game.offsetWidth - 45) + 'px';
-  a.style.top = '-60px';
-  a.innerHTML = `<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="25,2 35,15 48,18 40,30 45,45 25,38 5,45 10,30 2,18 15,15" fill="#ff3366" stroke="#b3002b" stroke-width="1" />
-  </svg>`;
-  game.appendChild(a);
-  asteroids.push(a);
-}
-
-/* move asteroids and handle collisions */
-function moveAsteroids(){
-  if(!gameRunning) return;
-  for(let i = asteroids.length-1; i>=0; i--){
-    const a = asteroids[i];
-    const top = parseFloat(a.style.top) || 0;
-    a.style.top = (top + speed) + 'px';
-
-    const rectA = a.getBoundingClientRect();
-    const rectS = ship.getBoundingClientRect();
-    if(!(rectA.right < rectS.left || rectA.left > rectS.right || rectA.bottom < rectS.top || rectA.top > rectS.bottom)){
-      endGame();
-      return;
-    }
-
-    if(top > game.offsetHeight){
-      // asteroid passed bottom
-      a.remove();
-      asteroids.splice(i,1);
-      score++;
-      scoreEl.textContent = score;
-
-      for(let m=0;m<milestones.length;m++){
-        if(score === milestones[m]){
-          speed += speedIncrements[m];
-          currentLevel = m+2;
-          speedLevelEl.textContent = currentLevel;
-          break;
-        }
-      }
-    }
-  }
-}
-
-/* start game */
-function startGame(){
-  const rect = game.getBoundingClientRect();
-  shipX = Math.max(0, rect.width/2 - 25);
-  asteroids.forEach(x=>x.remove());
-  asteroids = [];
-  score = 0;
-  speed = 2;
-  currentLevel = 1;
-  gameRunning = true;
-  scoreEl.textContent = 0;
-  speedLevelEl.textContent = 1;
-  titleEl.style.display = 'none';
-  startBtn.style.display = 'none';
-  gameOverOverlay.style.display = 'none';
-  updateShip();
-  clearIntervals();
-  asteroidInterval = setInterval(createAsteroid, 1400);
-  moveInterval = setInterval(moveAsteroids, 20);
-}
-
-/* end game */
-function endGame(){
-  gameRunning = false;
-  clearIntervals();
-  finalScoreEl.textContent = score;
-  maxLevelEl.textContent = currentLevel;
-  if(score > highScore){
-    highScore = score;
-    localStorage.setItem('spaceHighScore', highScore);
-  }
-  finalHighScoreEl.textContent = highScore;
-  highScoreEl.textContent = highScore;
-  gameOverOverlay.style.display = 'flex';
-}
-
-/* clear timers */
-function clearIntervals(){
-  if(asteroidInterval) { clearInterval(asteroidInterval); asteroidInterval = null; }
-  if(moveInterval) { clearInterval(moveInterval); moveInterval = null; }
-}
-
-/* controls */
-document.getElementById('leftBtn').addEventListener('click', () => {
-  if(!gameRunning) return;
-  shipX -= 40;
-  if(shipX < 0) shipX = 0;
-  updateShip();
-});
-document.getElementById('rightBtn').addEventListener('click', () => {
-  if(!gameRunning) return;
-  shipX += 40;
-  if(shipX > game.offsetWidth - 50) shipX = game.offsetWidth - 50;
-  updateShip();
+// When box is clicked → increase score
+box.addEventListener("click", () => {
+    score++;
+    scoreDisplay.innerText = "Score: " + score;
+    moveBox();
 });
 
-/* keyboard */
-window.addEventListener('keydown', (e) => {
-  if(['ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
-  keys[e.key] = true;
-});
-window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+// Move box automatically every 1 second
+setInterval(moveBox, 1000);
 
-setInterval(() => {
-  if(!gameRunning) return;
-  if(keys['ArrowLeft'] || keys['a'] || keys['A']) {
-    shipX -= 8;
-    if(shipX < 0) shipX = 0;
-    updateShip();
-  }
-  if(keys['ArrowRight'] || keys['d'] || keys['D']) {
-    shipX += 8;
-    if(shipX > game.offsetWidth - 50) shipX = game.offsetWidth - 50;
-    updateShip();
-  }
-}, 20);
-
-/* start/restart handlers */
-startBtn.addEventListener('click', startGame);
-restartBtn.addEventListener('click', () => { gameOverOverlay.style.display='none'; startGame(); });
-
-/* responsive */
-window.addEventListener('resize', () => {
-  // keep ship inside bounds on resize
-  if(shipX > game.offsetWidth - 50) shipX = Math.max(0, game.offsetWidth - 50);
-  updateShip();
-});
-
-/* initial setup */
-createStars();
-centerShip();
+// First position
+moveBox();
 </script>
+
 </body>
 </html>
