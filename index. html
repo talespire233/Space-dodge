@@ -1,76 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tap The Box Game</title>
-<style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #111;
-        color: white;
-        text-align: center;
-    }
-    #game-area {
-        width: 100%;
-        height: 80vh;
-        background: #222;
-        position: relative;
-        overflow: hidden;
-        border: 2px solid white;
-    }
+  <meta charset="UTF-8">
+  <title>Simple Test Game</title>
+  <style>
+    body { margin:0; overflow:hidden; background:black; }
     #box {
-        width: 60px;
-        height: 60px;
-        background: red;
-        position: absolute;
-        border-radius: 10px;
+      width:50px; height:50px; background:red; position:absolute;
+      top:50px; left:50px;
     }
-    #score {
-        font-size: 24px;
-        margin-top: 10px;
-    }
-</style>
+  </style>
 </head>
 <body>
+  <div id="box"></div>
 
-<h2>Tap The Box 🎯</h2>
-<p id="score">Score: 0</p>
-<div id="game-area">
-    <div id="box"></div>
-</div>
+  <script>
+    const box = document.getElementById("box");
+    let x = 50;
 
-<script>
-let box = document.getElementById("box");
-let gameArea = document.getElementById("game-area");
-let scoreDisplay = document.getElementById("score");
-let score = 0;
+    setInterval(() => {
+      x += 5;
+      if (x > window.innerWidth) x = 0;
+      box.style.left = x + "px";
+    }, 50);
 
-function moveBox() {
-    let maxX = gameArea.clientWidth - 60;
-    let maxY = gameArea.clientHeight - 60;
-
-    let randomX = Math.random() * maxX;
-    let randomY = Math.random() * maxY;
-
-    box.style.left = randomX + "px";
-    box.style.top = randomY + "px";
-}
-
-// When box is clicked → increase score
-box.addEventListener("click", () => {
-    score++;
-    scoreDisplay.innerText = "Score: " + score;
-    moveBox();
-});
-
-// Move box automatically every 1 second
-setInterval(moveBox, 1000);
-
-// First position
-moveBox();
-</script>
-
+    box.onclick = () => alert("You clicked the box!");
+  </script>
 </body>
 </html>
